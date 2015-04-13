@@ -1,41 +1,15 @@
 /**
- * Created by 图公子 on 2015/4/13.
+ * Created by 图公子 on 2015/4/7.
  */
-var page = require('webpage').create(),
+var fs=require('fs'),
     url=require('url'),
-    server = require('webserver').create(),//创建服务
-    ipPort="127.0.0.1:6000";
+    page = require('webpage').create(),
+    server = require('webserver').create();//创建服务
 
-server.listen(ipPort, function (request,response) {
-    var wholeUrl = url.parse(ipPort+request.url,true,true);
-    var address=wholeUrl.query.url||"";
-    var address=address.toString();
-    console.log(address);
-    if(getUrl==""){
-        response.statusCode = 200;
-        response.write('get none website!');
-        response.close();
-    } else{
-        page.open(testrul2, function (status) {//打开首页，开始爬取页面内容
-            if (status !== 'success') {
-                console.log('Unable to post!');
-            } else {
-                page.scrollPosition = {
-                    top: 1700,
-                    left: 0
-                };
-                var pageContent="";
-                nextReviews(page,pageContent,response);
-            }
-        });
-    }
-});
 
-console.log("sever running at "+ipPort);
+var config=JSON.parse(fs.read('./reptileConfig.json'));
+var ipPort=config.gome.seedUrl.ip_address+":"+config.gome.seedUrl.port;
 
-page.onConsoleMessage = function(msg) {
-    console.log(msg);
-};
 
 page.onError = function(msg, trace) {
 
@@ -51,27 +25,55 @@ page.onError = function(msg, trace) {
     console.error(msgStack.join('\n'));
 
 };
+page.onConsoleMessage = function(msg) {
+        console.log(msg);
+    };
+//    page.onResourceRequested = function(requestData, request) {
+//    //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
+//    //    request.abort();
+//    //}
+//    if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
+//        request.abort();
+//    }
+//    if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
+//        request.abort();
+//    }
+//    if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
+//        request.abort();
+//    }
+//    if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
+//        request.abort();
+//    }
+//    //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
+//    //    request.abort();
+//    //}
+//};
+//TODO （0,0）优化加载资源
 
-page.onResourceRequested = function(requestData, request) {
-    //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-    if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-};
+server.listen(ipPort, function (request,response) {
+    console.log('Request at ' + new Date());
+    var testrul2="http://www.gome.com.cn/category/cat10000049.html";
+    page.open(testrul2, function (status) {//打开首页，开始爬取页面内容
+        if (status !== 'success') {
+            console.log('Unable to post!');
+        } else {
+            //if(page.injectJs('jquery.js')){
+            //    console.log("yes!");
+            //}else{
+            //    console.log("no!");
+            //}
+            var hrefAll="";
+            page.scrollPosition = {
+                top: 1700,
+                left: 0
+            };//下拉以让其加载
+            nextPage(page,hrefAll,response);
+        }
+    });
+});
+
+console.log("sever running at "+ipPort);
+
 
 function waitFor(testFx, onReady, timeOutMillis) {
     var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 3000, //< Default Max Timout is 3s
@@ -85,7 +87,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
                 if(!condition) {
                     // If condition still not fulfilled (timeout but condition is 'false')
                     console.log("'waitFor()' timeout");
-                    phantom.exit(1);//TODO (1,0)不应该直接退出
+                    phantom.exit(1);
                 } else {
                     // Condition fulfilled (timeout and/or condition is 'true')
                     console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
@@ -96,11 +98,11 @@ function waitFor(testFx, onReady, timeOutMillis) {
         }, 250); //< repeat check every 250ms
 }
 
-function nextReviews(page,pageContent,response){
+function nextPage(page,hrefListALL,response){
     waitFor(function () {//等待加载完毕
-        return  page.evaluate(function () {
-            return $('div.pop-icon').is(':hidden');
-        });
+            return  page.evaluate(function () {
+                return $('div.pop-icon').is(':hidden');
+            });
     }, function () {
         var pageNum=page.evaluate(function () {//页码
             return $("span.num em").text();

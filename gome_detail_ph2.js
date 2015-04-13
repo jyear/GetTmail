@@ -2,13 +2,54 @@
  * Created by 图公子 on 2015/4/10.
  */
 
-var page = require('webpage').create(),
-    //system = require('system'),
-    url=require('url');
-    //address;
+var fs=require('fs'),
+    url=require('url'),
+    page = require('webpage').create(),
+    server = require('webserver').create();//创建服务
 
-var server = require('webserver').create();//创建服务
-var ipPort="127.0.0.1:5000";
+
+var config=JSON.parse(fs.read('./reptileConfig.json'));
+var ipPort=config.gome.detail.ip_address+":"+config.gome.detail.port;
+
+
+page.onResourceRequested = function(requestData, request) {
+    //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
+    //    request.abort();
+    //}
+    if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
+        request.abort();
+    }
+    if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
+        request.abort();
+    }
+    if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
+        request.abort();
+    }
+    if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
+        request.abort();
+    }
+    //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
+    //    request.abort();
+    //}
+};
+page.onConsoleMessage = function(msg) {
+    console.log(msg);
+};
+page.onError = function(msg, trace) {
+
+    var msgStack = ['ERROR: ' + msg];
+
+    if (trace && trace.length) {
+        msgStack.push('TRACE:');
+        trace.forEach(function(t) {
+            msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
+        });
+    }
+
+    console.error(msgStack.join('\n'));
+
+};
+
 
 server.listen(ipPort, function (request,response) {
     console.log('Request at ' + new Date());
@@ -17,7 +58,7 @@ server.listen(ipPort, function (request,response) {
     var address=wholeUrl.query.url||"";
     var address=address.toString();
     console.log(address);
-    if(getUrl==""){
+    if(address==""){
         response.statusCode = 200;
         response.write('get none website!');
         response.close();
@@ -87,27 +128,11 @@ server.listen(ipPort, function (request,response) {
 
 });
 
+
 console.log("sever running at "+ipPort);
 
 
-page.onConsoleMessage = function(msg) {
-    console.log(msg);
-};
 
-page.onError = function(msg, trace) {
-
-    var msgStack = ['ERROR: ' + msg];
-
-    if (trace && trace.length) {
-        msgStack.push('TRACE:');
-        trace.forEach(function(t) {
-            msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
-        });
-    }
-
-    console.error(msgStack.join('\n'));
-
-};
 
 function waitFor(testFx, onReady, timeOutMillis) {
     var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 3000, //< Default Max Timout is 3s
@@ -132,23 +157,3 @@ function waitFor(testFx, onReady, timeOutMillis) {
         }, 250); //< repeat check every 250ms
 }
 
-page.onResourceRequested = function(requestData, request) {
-    //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-    if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-};

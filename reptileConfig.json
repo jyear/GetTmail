@@ -1,0 +1,16 @@
+{
+  "gome":{
+       "seedUrl":{
+         "ip_address":"127.0.0.1",
+         "port":"3500"
+       } ,
+        "detail":{
+          "ip_address":"127.0.0.1",
+          "port":"3600"
+        },
+        "reviews":{
+          "ip_address":"127.0.0.1",
+          "port":"3700"
+        }
+  }
+}
