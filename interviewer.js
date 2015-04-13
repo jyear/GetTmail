@@ -3,11 +3,16 @@
  */
 
 var httpmethod=require('./httpmethod');
-
-var url=" http://localhost:3000";
-for(var i=0;i<60;i++){
+var cheerio=require('cheerio');
+var fs=require('fs');
+var url=" http://localhost:4000";
     httpmethod.get(url, function (data) {
+        //data=data.split(',');
         console.log(data);
+        fs.writeFile("list.txt",data);
     });
-}
+
+
+
+
 

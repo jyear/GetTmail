@@ -19,6 +19,7 @@ page.open(testurl, function (status) {
       top: 100,
       left: 1700
    };
+   page.render('yy.png');
    // jQuery is loaded, now manipulate the DOM
    //   console.log("include !");
       // Wait for 'signin-dropdown' to be visible
@@ -30,7 +31,8 @@ page.open(testurl, function (status) {
          });
       }, function() {
          console.log("suit out!");
-         phantom.exit();
+         page.render('./yy.png');
+         //phantom.exit();
       });
 });
 

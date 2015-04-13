@@ -29,9 +29,9 @@ var service = server.listen(ip_server, function(request, response) {
     casper.on('console', function (line) {
         console.log(line);
     });//将casper的打印环境转发到外围js环境下
-    var testurl="http://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.9.hLC38S&id=19842770800&skuId=31668477891&areaId=621200&cat_id=2&rn=5ee7cf53112db3113c042a183c048fdf&standard=1&user_id=470168984&is_b=1";
-
-    casper.start(testurl, function() {
+    //var testurl="http://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.9.hLC38S&id=19842770800&skuId=31668477891&areaId=621200&cat_id=2&rn=5ee7cf53112db3113c042a183c048fdf&standard=1&user_id=470168984&is_b=1";
+var guomeiURL="http://www.gome.com.cn/category/cat10000049.html";
+    casper.start(guomeiURL, function() {
     });
     casper.then(function () {
         this.scrollTo(100,1700);//下拉，让网页的延迟加载元素加载出来
@@ -63,7 +63,7 @@ var service = server.listen(ip_server, function(request, response) {
             response.statusCode = 200;
             response.setEncoding("gbk");//设置返回数据的编码
             MAX=MAX+1;
-            response.write(MAX);
+            response.write(data);
             response.close();
         this.echo("done.");
     });
