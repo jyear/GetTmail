@@ -3,78 +3,97 @@
  */
 var fs=require('fs'),
     url=require('url'),
-    page = require('webpage').create(),
     server = require('webserver').create();//创建服务
-
 
 
 var config=JSON.parse(fs.read('./reptileConfig.json'));
 var ipPort=config.gome.reviews.ip_address+":"+config.gome.reviews.port;
 
 
-page.onConsoleMessage = function(msg) {
-    console.log(msg);
-};
-page.onError = function(msg, trace) {
-
-    var msgStack = ['ERROR: ' + msg];
-
-    if (trace && trace.length) {
-        msgStack.push('TRACE:');
-        trace.forEach(function(t) {
-            msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
-        });
-    }
-
-    console.error(msgStack.join('\n'));
-
-};
-page.onResourceRequested = function(requestData, request) {
-    //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-    if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-};
-
 
 server.listen(ipPort, function (request,response) {
+    var page = require('webpage').create();
+        page.onConsoleMessage = function(msg) {
+        console.log(msg);
+    };
+        page.onError = function(msg, trace) {
+
+        var msgStack = ['ERROR: ' + msg];
+
+        if (trace && trace.length) {
+            msgStack.push('TRACE:');
+            trace.forEach(function(t) {
+                msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
+            });
+        }
+
+        console.error(msgStack.join('\n'));
+
+    };
+        page.onResourceRequested = function(requestData, request) {
+        //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
+        //    request.abort();
+        //}
+        if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
+        //    request.abort();
+        //}
+    };
+
     var wholeUrl = url.parse(ipPort+request.url,true,true);
-    var address=wholeUrl.query.url||"";
-    var address=address.toString();
-    console.log(address);
-    if(address==""){
+    var detialUrl=wholeUrl.query.url||"";
+    var detialUrl=detialUrl.toString();//
+    console.log(detialUrl);
+    if(detialUrl==""){
         response.statusCode = 200;
         response.write('get none website!');
-        response.close();
+        response.closeGracefully();
+        page.close();
     } else{
-        page.open(address, function (status) {//打开网页，开始爬取页面内容
-            if (status !== 'success') {
-                console.log('Unable to post!');
-            } else {
+        page.open(detialUrl, function (status) {
+            if(status!=="success"){
+                console.log('Unable to open detial for reviews!');
+                response.write('Unable to open detial for reviews!');
+                response.closeGracefully();
+                page.close();
+            }else{
                 page.scrollPosition = {
-                    top: 1700,
+                    top: 2700,
                     left: 0
-                };
-                var pageContent="";
-                var curNum=1;
-                console.log('begin...');
-                nextReviews(page,curNum,pageContent,response);
+                };//下拉以让其加载
+                var address=page.evaluate(function () {
+                    //console.log($("a.allcmt")[0].href);
+                    return $("a.allcmt")[0].href;
+                });
+               ;
+                page.open(address, function (status) {//打开网页，开始爬取页面内容
+                    if (status !== 'success') {
+                        console.log('Unable to open reviews website!');
+                    } else {
+                        page.scrollPosition = {
+                            top: 1700,
+                            left: 0
+                        };
+                        var pageContent="";
+                        var curNum=1;
+                        console.log('begin...');
+                        nextReviews(page,curNum,pageContent,response);
+                    }
+                });
             }
         });
+
     }
 });
 
@@ -122,7 +141,7 @@ function nextReviews(page,curNum,pageContent,response){
            return $("div[class='appraiseType  dn']")[0].innerHTML+
                $("ul[class='replyListWrap dn']")[0].innerHTML;
         });
-        console.log(curPageContent);
+        //console.log(curPageContent);
         pageContent=pageContent+curPageContent;
         //console.log(hrefList);
         var lastPage= page.evaluate(function () {
@@ -137,9 +156,18 @@ function nextReviews(page,curNum,pageContent,response){
         });
         if(lastPage){
             response.statusCode = 200;
-            response.write(pageContent);
-            response.close();
-            phantom.exit(0);
+            response.write('<html>');
+            response.write('<head>');
+            response.write('<meta charset="UTF-8">');
+            response.write('</head>');
+            response.write('<body>');
+            //response.write("<div id='url'>"+price+"</div>");
+            response.write("<div id='reviews'>"+pageContent+"</div>");
+            response.write('</body>');
+            response.write('</html>');
+            response.closeGracefully();
+            page.close();
+            //phantom.exit(0);
         }else{
             console.log("pageNumber:"+curNum);
             console.log("listLength:"+pageContent.length);

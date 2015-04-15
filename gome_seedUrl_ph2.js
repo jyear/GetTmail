@@ -3,32 +3,36 @@
  */
 var fs=require('fs'),
     url=require('url'),
-    page = require('webpage').create(),
     server = require('webserver').create();//创建服务
 
 
 var config=JSON.parse(fs.read('./reptileConfig.json'));
 var ipPort=config.gome.seedUrl.ip_address+":"+config.gome.seedUrl.port;
+var seedUrl=config.gome.seedUrl.seedUrl;
 
 
-page.onError = function(msg, trace) {
 
-    var msgStack = ['ERROR: ' + msg];
 
-    if (trace && trace.length) {
-        msgStack.push('TRACE:');
-        trace.forEach(function(t) {
-            msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
-        });
-    }
+server.listen(ipPort, function (request,response) {
+    var page = require('webpage').create();
+        page.onError = function(msg, trace) {
 
-    console.error(msgStack.join('\n'));
+        var msgStack = ['ERROR: ' + msg];
 
-};
-page.onConsoleMessage = function(msg) {
+        if (trace && trace.length) {
+            msgStack.push('TRACE:');
+            trace.forEach(function(t) {
+                msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
+            });
+        }
+
+        console.error(msgStack.join('\n'));
+
+    };
+        page.onConsoleMessage = function(msg) {
         console.log(msg);
     };
-//    page.onResourceRequested = function(requestData, request) {
+        //    page.onResourceRequested = function(requestData, request) {
 //    //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
 //    //    request.abort();
 //    //}
@@ -49,11 +53,9 @@ page.onConsoleMessage = function(msg) {
 //    //}
 //};
 //TODO （0,0）优化加载资源
-
-server.listen(ipPort, function (request,response) {
     console.log('Request at ' + new Date());
-    var testrul2="http://www.gome.com.cn/category/cat10000049.html";
-    page.open(testrul2, function (status) {//打开首页，开始爬取页面内容
+    //var testrul2="http://www.gome.com.cn/category/cat10000049.html";
+    page.open(seedUrl, function (status) {//打开首页，开始爬取页面内容
         if (status !== 'success') {
             console.log('Unable to post!');
         } else {
@@ -125,18 +127,19 @@ function nextPage(page,hrefListALL,response){
             }else{
                 return true;
             }
-        });
+        })||pageNum==2;
         if(lastPage){
             response.statusCode = 200;
             response.write(hrefListALL);
-            response.close();
-            phantom.exit(0);
-        }else{
+            response.closeGracefully();
+            page.close();
+            //phantom.exit(0);
+        }else{//TODO 这里可以做优化，将每一页的inneralist response过去，不用积攒到一起才发
             console.log("pageNumber:"+pageNum);
             console.log("listLength:"+hrefListALL.length);
             nextPage(page,hrefListALL,response);
 
         }
 
-    },5000);
+    },10000);
 }

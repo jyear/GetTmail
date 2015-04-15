@@ -4,7 +4,7 @@
 
 var fs=require('fs'),
     url=require('url'),
-    page = require('webpage').create(),
+
     server = require('webserver').create();//创建服务
 
 
@@ -12,48 +12,52 @@ var config=JSON.parse(fs.read('./reptileConfig.json'));
 var ipPort=config.gome.detail.ip_address+":"+config.gome.detail.port;
 
 
-page.onResourceRequested = function(requestData, request) {
-    //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-    if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
-        request.abort();
-    }
-    //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
-    //    request.abort();
-    //}
-};
-page.onConsoleMessage = function(msg) {
-    console.log(msg);
-};
-page.onError = function(msg, trace) {
-
-    var msgStack = ['ERROR: ' + msg];
-
-    if (trace && trace.length) {
-        msgStack.push('TRACE:');
-        trace.forEach(function(t) {
-            msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
-        });
-    }
-
-    console.error(msgStack.join('\n'));
-
-};
 
 
 server.listen(ipPort, function (request,response) {
+
+    var page = require('webpage').create();
+    page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:37.0) Gecko/20100101 Firefox/37.0';
+    page.onResourceRequested = function(requestData, request) {
+        //if ((/http:\/\/.+?\.css/gi).test(requestData['url'])) {
+        //    request.abort();
+        //}
+        if ((/http:\/\/.*baidu/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        if ((/http:\/\/.*gif/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        if ((/http:\/\/.+?\.jpg/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        if ((/http:\/\/.+?\.png/gi).test(requestData['url'])) {
+            request.abort();
+        }
+        //if ((/http:\/\/.+?\.js/gi).test(requestData['url'])) {
+        //    request.abort();
+        //}
+    };
+    page.onConsoleMessage = function(msg) {
+        console.log(msg);
+    };
+    page.onError = function(msg, trace) {
+
+        var msgStack = ['ERROR: ' + msg];
+
+        if (trace && trace.length) {
+            msgStack.push('TRACE:');
+            trace.forEach(function(t) {
+                msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
+            });
+        }
+
+        console.error(msgStack.join('\n'));
+
+    };
+
     console.log('Request at ' + new Date());
-    console.log(JSON.stringify(request, null, 4));
+    //console.log(JSON.stringify(request, null, 4));
     var wholeUrl = url.parse(ipPort+request.url,true,true);
     var address=wholeUrl.query.url||"";
     var address=address.toString();
@@ -61,19 +65,26 @@ server.listen(ipPort, function (request,response) {
     if(address==""){
         response.statusCode = 200;
         response.write('get none website!');
-        response.close();
+        response.closeGracefully();
+        page.close();
     }
     else{
-
         //var testUrl="http://item.gome.com.cn/9133450979-1122290197.html";
         page.open(address, function (status) {
             if (status !== 'success') {
-                console.log('Unable to post!');
+                console.log('Unable to open detial website!');
+                response.write('Unable to open detial website!');
+                response.closeGracefully();
+                page.close();
             } else {
+                page.scrollPosition = {
+                    top: 1700,
+                    left: 0
+                };//下拉以让其加载
                 waitFor(function () {//等待加载
                     return page.evaluate(function () {
                         return $("#prdPrice")!=null
-                    })
+                    });
                 }, function () {//加载完成
                     var price=page.evaluate(function () {//价格
                         //console.log($("#prdPrice")[0].innerHTML);
@@ -85,42 +96,44 @@ server.listen(ipPort, function (request,response) {
                     });
                     var prd_data=page.evaluate(function () {//具体参数，可能会包括部分详情页的文字
                         //console.log($("#prdPrice")[0].innerHTML);
-                        return $("#prd_data")[0].innerHTML;
+                        return $("ul.specbox")[0].innerHTML;
                     });
-                    page.evaluate(function () {
-                        $("a[class='pingjia_header']").click();//点击评价
-                        console.log('click success!');
-                    });
-                    page.scrollPosition = {
-                        top: 1700,
-                        left: 0
-                    };//下拉以让其加载
-                    waitFor(function () {//等评论详情出现
-                        return page.evaluate(function () {
-                            return $("li[class='oh']").length!=0||
-                                pincnt==0;
-                        });
-                    }, function () {
-                        //TODO 这里应该评论分离出去
-                        var common=page.evaluate(function () {//评论详情
-                            return $("#j-comment-section")[0].innerHTML;
-                        });
-                        response.statusCode = 200;
-                        //response.setEncoding="uft-8";
-                        response.write('<html>');
-                        response.write('<head>');
-                        response.write('<meta charset="UTF-8">');
-                        response.write('</head>');
-                        response.write('<body>');
-                        response.write("<div id='price'>"+price+"</div>");
-                        response.write("<div id='pincnt'>"+pincnt+"</div>");
-                        response.write("<div id='prd_data'>"+prd_data+"</div>");
-                        response.write("<div id='common'>"+common+"</div>");
-                        response.write('</body>');
-                        response.write('</html>');
-                        response.close();
-
-                    },4000);
+                    //page.evaluate(function () {
+                    //    $("a[class='pingjia_header']").click();//点击评价
+                    //    console.log('click success!');
+                    //});
+                    //page.scrollPosition = {
+                    //    top: 1700,
+                    //    left: 0
+                    //};//下拉以让其加载
+                    response.statusCode = 200;
+                    //response.setEncoding="uft-8";
+                    response.write('<html>');
+                    response.write('<head>');
+                    response.write('<meta charset="UTF-8">');
+                    response.write('</head>');
+                    response.write('<body>');
+                    response.write("<div id='price'>"+price+"</div>");
+                    response.write("<div id='pincnt'>"+pincnt+"</div>");
+                    response.write("<div id='prd_data'>"+prd_data+"</div>");
+                    //response.write("<div id='common'>"+common+"</div>");
+                    response.write('</body>');
+                    response.write('</html>');
+                    response.closeGracefully();
+                    page.close();
+                    //waitFor(function () {//等评论详情出现
+                    //    return page.evaluate(function () {
+                    //        return $("li[class='oh']").length!=0||
+                    //            pincnt==0;
+                    //    });
+                    //}, function () {
+                    //    //已经在reviews这个文件里面处理评论
+                    //    //var common=page.evaluate(function () {//评论详情
+                    //    //    return $("#j-comment-section")[0].innerHTML;
+                    //    //});
+                    //
+                    //
+                    //},4000);
                 },4000);
             }
         });
