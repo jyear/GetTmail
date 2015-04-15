@@ -10,7 +10,9 @@ var IP=" http://127.0.0.1";
 
        //var testUrl="http://localhost:3700/?url=http://item.gome.com.cn/9130470453-1119470047.html";
        var seedUrl=IP+":3500";
+var btime=new Date().getTime();
 nodegrass.get(seedUrl, function (data,status,header) {
+
     var countNum=1;
     var dataList=data.split(',');
     console.log(dataList.length);
@@ -20,9 +22,18 @@ nodegrass.get(seedUrl, function (data,status,header) {
             return;
         }
         nodegrass.get(IP+":"+"3600/?url="+e, function (html) {
-            fs.writeFile(countNum+".html",html);
+            //fs.writeFile(countNum+".html",html);
+            countNum++;
+            if(countNum==dataList.length){
+                console.log(new Date().getTime()-btime);
+                process.exit(0);
+            }
+        });
+        nodegrass.get(IP+":"+"3700/?url="+e, function (html) {
+            //fs.writeFile(countNum+".html",html);
             countNum++;
         })
+
     });
     //dealAnObj(1,dataList,0);
 });

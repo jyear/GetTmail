@@ -59,10 +59,10 @@ server.listen(ipPort, function (request,response) {
     console.log('Request at ' + new Date());
     //console.log(JSON.stringify(request, null, 4));
     var wholeUrl = url.parse(ipPort+request.url,true,true);
-    var address=wholeUrl.query.url||"";
-    var address=address.toString();
-    console.log(address);
-    if(address==""){
+    var detialUrl=wholeUrl.query.url||"";
+    var detialUrl=detialUrl.toString();
+    console.log(detialUrl);
+    if(detialUrl==""){
         response.statusCode = 200;
         response.write('get none website!');
         response.closeGracefully();
@@ -70,7 +70,7 @@ server.listen(ipPort, function (request,response) {
     }
     else{
         //var testUrl="http://item.gome.com.cn/9133450979-1122290197.html";
-        page.open(address, function (status) {
+        page.open(detialUrl, function (status) {
             if (status !== 'success') {
                 console.log('Unable to open detial website!');
                 response.write('Unable to open detial website!');
@@ -113,6 +113,7 @@ server.listen(ipPort, function (request,response) {
                     response.write('<meta charset="UTF-8">');
                     response.write('</head>');
                     response.write('<body>');
+                    response.write("<div id='detialUrl'>"+detialUrl+"</div>");
                     response.write("<div id='price'>"+price+"</div>");
                     response.write("<div id='pincnt'>"+pincnt+"</div>");
                     response.write("<div id='prd_data'>"+prd_data+"</div>");
@@ -134,7 +135,7 @@ server.listen(ipPort, function (request,response) {
                     //
                     //
                     //},4000);
-                },4000);
+                },10000);
             }
         });
     }
@@ -167,6 +168,6 @@ function waitFor(testFx, onReady, timeOutMillis) {
                     clearInterval(interval); //< Stop this interval
                 }
             }
-        }, 250); //< repeat check every 250ms
+        }, 150); //< repeat check every 250ms
 }
 

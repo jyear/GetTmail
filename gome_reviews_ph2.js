@@ -54,7 +54,7 @@ server.listen(ipPort, function (request,response) {
     var wholeUrl = url.parse(ipPort+request.url,true,true);
     var detialUrl=wholeUrl.query.url||"";
     var detialUrl=detialUrl.toString();//
-    console.log(detialUrl);
+    //console.log(detialUrl);
     if(detialUrl==""){
         response.statusCode = 200;
         response.write('get none website!');
@@ -120,7 +120,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
                     clearInterval(interval); //< Stop this interval
                 }
             }
-        }, 250); //< repeat check every 250ms
+        }, 150); //< repeat check every 250ms
 }
 
 function nextReviews(page,curNum,pageContent,response){
@@ -155,6 +155,7 @@ function nextReviews(page,curNum,pageContent,response){
             }
         });
         if(lastPage){
+            var detialUrl=page.url;
             response.statusCode = 200;
             response.write('<html>');
             response.write('<head>');
@@ -163,6 +164,7 @@ function nextReviews(page,curNum,pageContent,response){
             response.write('<body>');
             //response.write("<div id='url'>"+price+"</div>");
             response.write("<div id='reviews'>"+pageContent+"</div>");
+            response.write("<div id='detialUrl'>"+detialUrl+"</div>");
             response.write('</body>');
             response.write('</html>');
             response.closeGracefully();
@@ -176,5 +178,5 @@ function nextReviews(page,curNum,pageContent,response){
 
         }
 
-    },5000);
+    },11000);
 }
