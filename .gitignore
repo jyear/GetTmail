@@ -73,3 +73,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+#IDE 相关
+.idea
