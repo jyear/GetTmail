@@ -63,8 +63,8 @@ server.listen(ipPort, function (request,response) {
     var detialUrl=detialUrl.toString();
     console.log(detialUrl);
     if(detialUrl==""){
-        response.statusCode = 200;
-        response.write('get none website!');
+        response.statusCode = 404;
+        response.write('detialUrl is null!');
         response.closeGracefully();
         page.close();
     }
@@ -73,6 +73,7 @@ server.listen(ipPort, function (request,response) {
         page.open(detialUrl, function (status) {
             if (status !== 'success') {
                 console.log('Unable to open detial website!');
+                response.statusCode = 404;
                 response.write('Unable to open detial website!');
                 response.closeGracefully();
                 page.close();
@@ -106,8 +107,21 @@ server.listen(ipPort, function (request,response) {
                     //    top: 1700,
                     //    left: 0
                     //};//下拉以让其加载
+                    //var savePageContent='<html>'+
+                    //                    '<head>'+
+                    //                    '<meta charset="UTF-8">'+
+                    //                    '</head>'+
+                    //    '<body>'+
+                    //    "<div id='detialUrl'>"+detialUrl+"</div>"+
+                    //    "<div id='price'>"+price+"</div>"+
+                    //    "<div id='pincnt'>"+pincnt+"</div>"+
+                    //    "<div id='prd_data'>"+prd_data+"</div>"+
+                    //    '</body>'+
+                    //    '</html>';
+                    //var path="data/"+detialUrl.split('.')[3].split('/')[1];
+                    //fs.write(path,savePageContent,'w');
                     response.statusCode = 200;
-                    //response.setEncoding="uft-8";
+                    response.setEncoding="uft-8";
                     response.write('<html>');
                     response.write('<head>');
                     response.write('<meta charset="UTF-8">');
@@ -117,24 +131,11 @@ server.listen(ipPort, function (request,response) {
                     response.write("<div id='price'>"+price+"</div>");
                     response.write("<div id='pincnt'>"+pincnt+"</div>");
                     response.write("<div id='prd_data'>"+prd_data+"</div>");
-                    //response.write("<div id='common'>"+common+"</div>");
                     response.write('</body>');
                     response.write('</html>');
                     response.closeGracefully();
                     page.close();
-                    //waitFor(function () {//等评论详情出现
-                    //    return page.evaluate(function () {
-                    //        return $("li[class='oh']").length!=0||
-                    //            pincnt==0;
-                    //    });
-                    //}, function () {
-                    //    //已经在reviews这个文件里面处理评论
-                    //    //var common=page.evaluate(function () {//评论详情
-                    //    //    return $("#j-comment-section")[0].innerHTML;
-                    //    //});
-                    //
-                    //
-                    //},4000);
+
                 },10000);
             }
         });

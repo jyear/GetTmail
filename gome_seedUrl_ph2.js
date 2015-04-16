@@ -127,14 +127,14 @@ function nextPage(page,hrefListALL,response){
             }else{
                 return true;
             }
-        })||pageNum==5;
+        })||pageNum==10;
         if(lastPage){
             response.statusCode = 200;
             response.write(hrefListALL);
             response.closeGracefully();
             page.close();
             //phantom.exit(0);
-        }else{//TODO 这里可以做优化，将每一页的inneralist response过去，不用积攒到一起才发
+        }else{//
             console.log("pageNumber:"+pageNum);
             console.log("listLength:"+hrefListALL.length);
             nextPage(page,hrefListALL,response);
