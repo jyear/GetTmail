@@ -127,7 +127,7 @@ function nextPage(page,hrefListALL,response){
             }else{
                 return true;
             }
-        })||pageNum==10;
+            }) || pageNum == 2;
         if(lastPage){
             response.statusCode = 200;
             response.write(hrefListALL);
