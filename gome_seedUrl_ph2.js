@@ -110,14 +110,16 @@ function nextPage(page,hrefListALL,response){
             return $("span.num em").text();
         });
         var hrefList=page.evaluate(function () {
-            var inneralist=[];
-            $("#prodByAjax p[class='name'] a").each(function () {
+            var inneralist = "";
+            $("#prodByAjax p[class='name'] a").each(function (e) {
                 //console.log((this));
-                inneralist.push(this);
+                inneralist = inneralist + this + ",";
             });
+            console.log("inner length:" + inneralist.split(',').length);
             return inneralist.toString();
+
         });
-        hrefListALL=hrefListALL+','+hrefList;
+        hrefListALL = hrefListALL + hrefList;
         //console.log(hrefList);
         var lastPage= page.evaluate(function () {
             //console.log($("a[class='next disable']")[0]);
@@ -127,8 +129,9 @@ function nextPage(page,hrefListALL,response){
             }else{
                 return true;
             }
-            }) || pageNum == 2;
+        });
         if(lastPage){
+            console.log("presend length:" + hrefListALL.split(',').length);
             response.statusCode = 200;
             response.write(hrefListALL);
             response.closeGracefully();

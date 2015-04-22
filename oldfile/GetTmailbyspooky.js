@@ -63,7 +63,6 @@ var spooky = new Spooky({
         //var saveData=iconv.encode(orData,'gbk');
         //console.log(data);
         var $=cheerio.load(data);
-        //this.cwsave("ddd.html",data);
         console.log($("div[class='tm-rate-date']").text());//评价日期
         console.log($("div[class='tm-rate-content']").text());//评价内容
 

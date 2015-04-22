@@ -8,6 +8,8 @@ var mongoose = require("mongoose");
 var ProdSchema = new mongoose.Schema({
 
     url: {type: String, default: {}},
+    price: {type: String, default: ""},
+    commentNum: {type: String, default: ""},
     property: {type: {}, default: {}},
     updateTime: {type: Date, default: Date.now}
 });

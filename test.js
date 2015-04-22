@@ -1,6 +1,11 @@
 var nodegrass = require('nodegrass');
 
-var url = 'http://item.gome.com.cn/9133421143-1122260094.html';
-nodegrass.get('http://127.0.0.1:3600/?url=http://item.gome.com.cn/9133421143-1122260094.html', function (data, status, header) {
-    console.log(data);
+var comm = require('./mongo/comment_detail');
+var mongoose = require("mongoose");
+mongoose.connect('mongodb://localhost/gome_cw');
+var ddd = new comm({
+    url: "dddd"
+});
+ddd.save(function (err) {
+    console.log(err);
 });

@@ -6,8 +6,10 @@
 var mongoose = require("mongoose");
 var commentSchema = new mongoose.Schema({
 
-    url: {type: String, default: {}},
+    url: {type: String, default: ""},
+    commentTime: {type: String, default: ""},
     commentText: {type: String, default: ""},
+    reviewsText: {type: String, default: ""},
     updateTime: {type: Date, default: Date.now}
 });
 

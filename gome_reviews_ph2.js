@@ -57,14 +57,15 @@ server.listen(ipPort, function (request,response) {
     //console.log(detialUrl);
     if(detialUrl==""){
         response.statusCode = 200;
-        response.write('get none website!');
+        console.log('get none website!');
         response.closeGracefully();
         page.close();
     } else{
+        console.log("详情页：" + detialUrl);
         page.open(detialUrl, function (status) {
             if(status!=="success"){
                 console.log('Unable to open detial for reviews!');
-                response.write('Unable to open detial for reviews!');
+                //response.write('Unable to open detial for reviews!');
                 response.closeGracefully();
                 page.close();
             }else{
@@ -76,10 +77,14 @@ server.listen(ipPort, function (request,response) {
                     //console.log($("a.allcmt")[0].href);
                     return $("a.allcmt")[0].href;
                 });
-               ;
+                console.log("评论页：" + address);
                 page.open(address, function (status) {//打开网页，开始爬取页面内容
                     if (status !== 'success') {
                         console.log('Unable to open reviews website!');
+                        response.statusCode = 200;
+                        //response.write('Unable to open reviews website!');
+                        response.closeGracefully();
+                        page.close();
                     } else {
                         page.scrollPosition = {
                             top: 1700,
@@ -112,7 +117,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
                 if(!condition) {
                     // If condition still not fulfilled (timeout but condition is 'false')
                     console.log("'waitFor()' timeout");
-                    phantom.exit(1);//TODO (1,0)不应该直接退出
+                    //phantom.exit(1);//TODO (1,0)不应该直接退出
                 } else {
                     // Condition fulfilled (timeout and/or condition is 'true')
                     console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
@@ -137,12 +142,27 @@ function nextReviews(page,curNum,pageContent,response){
 
     }, function () {
 
-        var curPageContent=page.evaluate(function () {
-           return $("div[class='appraiseType  dn']")[0].innerHTML+
-               $("ul[class='replyListWrap dn']")[0].innerHTML;
+        var curCommList = page.evaluate(function () {
+            var backList = "";
+            var commList = $("li.oh");
+            //console.log(commList);
+            if (commList == undefined || null) {
+
+            } else {
+                commList.each(function (e) {
+                    var commLength = commList[e].children.length;//有的地方长度不一，影响取值；默认应该是5，有时候是6
+                    var time = commList[e].children[1].children[1].text.toString();
+                    var xinde = commList[e].children[commLength - 3].textContent.toString();
+                    var review = commList[e].children[commLength] == undefined ? "无评论回复" : commList[e].children[0].children[1].innerHTML.toString();
+                    backList = backList + (time + '|' + xinde + '|' + review + '|||');
+                });
+            }
+            return backList;
+            //return $("ul[class='replyListWrap dn']")[0].innerHTML;
+            //+$("div[class='appraiseType  dn']")[0].innerHTML//好评中评差评数
         });
         //console.log(curPageContent);
-        pageContent=pageContent+curPageContent;
+        pageContent = pageContent + curCommList;
         //console.log(hrefList);
         var lastPage= page.evaluate(function () {
             //console.log($("a[class='next disable']")[0]);
@@ -156,17 +176,9 @@ function nextReviews(page,curNum,pageContent,response){
         });
         if(lastPage){
             var detialUrl=page.url;
-            response.statusCode = 200;
-            response.write('<html>');
-            response.write('<head>');
-            response.write('<meta charset="UTF-8">');
-            response.write('</head>');
-            response.write('<body>');
-            //response.write("<div id='url'>"+price+"</div>");
-            response.write("<div id='reviews'>"+pageContent+"</div>");
-            response.write("<div id='detialUrl'>"+detialUrl+"</div>");
-            response.write('</body>');
-            response.write('</html>');
+            //response.statusCode = 200;
+            fs.write("ddd.txt", pageContent);
+            response.write(pageContent);
             response.closeGracefully();
             page.close();
             //phantom.exit(0);
